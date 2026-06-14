@@ -116,15 +116,56 @@ spectral step: the returned `history` is **not monotone**, and on return
 `params` holds the **best-seen iterate** (not the last), so the objective
 there equals `max(history)` for ascent (`min` for descent).
 
+### Batched parallel multi-start SPG
+
+`pga_ascent_spg_batched` runs `B` independent SPG optimisations — one per
+random initial point — as a single vectorised computation over a leading
+**batch dimension**. On SIMD / GPU hardware `B` restarts cost ~the same
+wall-clock as one, so multi-start is nearly free. This is the tool for
+problems whose landscape has multiple distinct-valued local optima.
+
+```python
+import torch
+from pga_toolbox import pga_ascent_spg_batched, project_total_power_batched
+
+B = 16
+F_list = [
+    torch.randn(B, 4, 4, dtype=torch.complex128).requires_grad_(True)
+    for _ in range(9)
+]
+
+def closure():
+    return my_mi_objective(F_list)        # returns a real tensor of shape (B,)
+
+res = pga_ascent_spg_batched(
+    closure, F_list,
+    projector=lambda ps: project_total_power_batched(ps, P=36.0),
+    max_iter=200,
+)
+print(f"best of {B}: {res.best_obj.max():.4f}  (winner = #{res.winner})")
+```
+
+Requirements: `params[m]` has shape `(B, *shape_m)`; the closure returns a
+`(B,)` tensor; batch elements must be **independent** (no cross-batch ops),
+which makes the single-backward gradient correct; and the projector must be
+**batch-aware** (per element) — use the `*_batched` projections. The closure
+should be **NaN-safe** (return `NaN` for a bad element rather than raising), so
+one ill-conditioned restart cannot abort the whole batch. On return,
+`params[m][b]` holds element `b`'s best-seen point and `res.winner` indexes the
+global incumbent. See `notes/BATCHED_SPG_DESIGN.md`.
+
 ### Descent variants
 
 Symmetric ascent / descent wrappers:
 
 ```python
-from pga_toolbox import pga_descent, pga_descent_armijo, pga_descent_spg
+from pga_toolbox import (
+    pga_descent, pga_descent_armijo, pga_descent_spg, pga_descent_spg_batched,
+)
 
 history = pga_descent_armijo(cost_closure, params, projector=projector)
 history = pga_descent_spg(cost_closure, params, projector=projector)
+res = pga_descent_spg_batched(cost_closure, params, projector=projector_batched)
 ```
 
 ## Public API
@@ -137,8 +178,11 @@ history = pga_descent_spg(cost_closure, params, projector=projector)
 | `pga_descent_armijo` | Armijo line search DESCENT | symmetric descent |
 | `pga_ascent_spg` | Spectral Projected Gradient ASCENT (BB + nonmonotone) | recommended; fewest evals on hard / ill-conditioned problems (convex constraint) |
 | `pga_descent_spg` | Spectral Projected Gradient DESCENT | symmetric descent |
+| `pga_ascent_spg_batched` | batched parallel multi-start SPG ASCENT | `B` random restarts at ~the cost of one; multimodal landscapes |
+| `pga_descent_spg_batched` | batched parallel multi-start SPG DESCENT | symmetric descent |
 | `project_frobenius_ball` | project one matrix onto `{X : ‖X‖_F^2 ≤ P}` | per-matrix power constraint |
 | `project_total_power` | project a list onto `{Σ_m ‖A_m‖_F^2 ≤ P}` | shared total power budget |
+| `project_frobenius_ball_batched` / `project_total_power_batched` | per-element projections over a leading batch dim | batched multi-start |
 
 The `pga_*` drivers accept three closure / parameter conventions:
 
@@ -169,16 +213,20 @@ The `pga_*` drivers accept three closure / parameter conventions:
 ## Roadmap
 
 - v0.1: fixed-step + Armijo (deterministic).
-- v0.3 (this release): Spectral Projected Gradient (SPG) — Barzilai–Borwein
-  spectral step + nonmonotone projected line search. Validated on the
-  MI-maximisation smoke benchmark (~6× fewer evals than Armijo, ~20× fewer
-  than a tuned fixed step, same optimum).
+- v0.3: Spectral Projected Gradient (SPG) — Barzilai–Borwein spectral step +
+  nonmonotone projected line search. Validated on the MI-maximisation smoke
+  benchmark (~6× fewer evals than Armijo, ~20× fewer than a tuned fixed step,
+  same optimum).
+- v0.4 (this release): batched parallel multi-start SPG — `B` random restarts
+  over a leading batch dimension at ~the cost of one. Validated on a multimodal
+  MI regime (best-of-16 beats the median single-start by tens of percent, with
+  B=16 wall-clock ≈ B=1). See `notes/BATCHED_SPG_DESIGN.md`.
 - v0.2 (planned): stochastic SGD ascent / descent + projection
   (closure-resamples convention from `fading-dag`). Note: the deterministic
   line-search / BB machinery (Armijo, SPG) is **not** directly usable under
   minibatch noise.
-- v0.4+ (planned): more projections (unit modulus for RIS phases,
-  simplex, rank constraints, etc.).
+- v0.5+ (planned): non-convex projections (unit modulus for RIS phases,
+  simplex, rank constraints) — where multi-start becomes essential.
 
 ## License
 

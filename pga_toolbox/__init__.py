@@ -1,6 +1,7 @@
 """pga-toolbox: projected gradient ascent / descent for complex
 (Wirtinger) and real parameters, with fixed-step, Armijo backtracking
-line search, and Spectral Projected Gradient (SPG) variants.
+line search, and Spectral Projected Gradient (SPG) variants, including a
+batched (parallel multi-start) SPG.
 
 Public API:
     Fixed-step:
@@ -9,8 +10,11 @@ Public API:
         pga_ascent_armijo, pga_descent_armijo
     Spectral Projected Gradient (Barzilai-Borwein + nonmonotone search):
         pga_ascent_spg, pga_descent_spg
+    Batched (parallel multi-start) SPG:
+        pga_ascent_spg_batched, pga_descent_spg_batched, BatchedHistory
     Closed-form projections:
         project_frobenius_ball, project_total_power
+        project_frobenius_ball_batched, project_total_power_batched
 
 Typical usage:
     >>> from pga_toolbox import pga_ascent_armijo, project_total_power
@@ -31,10 +35,20 @@ fixed-step and Armijo drivers treat it as such.
 
 from .line_search import pga_ascent_armijo, pga_descent_armijo
 from .pga import pga_ascent, pga_descent
-from .projections import project_frobenius_ball, project_total_power
+from .projections import (
+    project_frobenius_ball,
+    project_frobenius_ball_batched,
+    project_total_power,
+    project_total_power_batched,
+)
 from .spg import pga_ascent_spg, pga_descent_spg
+from .spg_batched import (
+    BatchedHistory,
+    pga_ascent_spg_batched,
+    pga_descent_spg_batched,
+)
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "pga_ascent",
@@ -43,7 +57,12 @@ __all__ = [
     "pga_descent_armijo",
     "pga_ascent_spg",
     "pga_descent_spg",
+    "pga_ascent_spg_batched",
+    "pga_descent_spg_batched",
+    "BatchedHistory",
     "project_frobenius_ball",
     "project_total_power",
+    "project_frobenius_ball_batched",
+    "project_total_power_batched",
     "__version__",
 ]

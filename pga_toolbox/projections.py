@@ -78,3 +78,62 @@ def project_total_power(
         sqrt_total <= sqrt_P, torch.ones_like(sqrt_total), sqrt_P / sqrt_total
     )
     return [p * scale for p in params]
+
+
+def _bcast_to(vec: torch.Tensor, like: torch.Tensor) -> torch.Tensor:
+    """Reshape a ``(B,)`` vector to broadcast over the trailing dims of ``like``."""
+    return vec.reshape(-1, *([1] * (like.ndim - 1)))
+
+
+def project_frobenius_ball_batched(A: torch.Tensor, P: float) -> torch.Tensor:
+    """Per-element Frobenius-ball projection for a batched tensor.
+
+    ``A`` has a leading batch dimension ``(B, *shape)``; each slice ``A[b]`` is
+    projected independently onto {X : ||X||_F^2 <= P}. This is the batch-aware
+    counterpart of :func:`project_frobenius_ball` used by the batched
+    (multi-start) SPG driver.
+
+    Args:
+        A: Complex or real tensor of shape ``(B, *shape)``.
+        P: Positive power budget (shared value, applied per element).
+
+    Returns:
+        New tensor of the same shape; ``out[b]`` satisfies the constraint.
+    """
+    if P <= 0:
+        raise ValueError(f"Power budget P must be positive, got {P}")
+    norm_sq = (A.abs() ** 2).flatten(1).sum(1)  # (B,)
+    factor = torch.sqrt(torch.clamp(P / norm_sq, max=1.0))  # (B,)
+    return A * _bcast_to(factor, A)
+
+
+def project_total_power_batched(
+    params: list[torch.Tensor],
+    P: float,
+) -> list[torch.Tensor]:
+    """Per-element total-power projection for a batched parameter list.
+
+    Each tensor in ``params`` has a leading batch dimension ``(B, *shape_m)``.
+    For every batch element ``b`` independently, the stacked vector
+    ``{A_m[b]}_m`` is projected onto {sum_m ||A_m[b]||_F^2 <= P} by a single
+    per-element rescaling. This is the constraint actually wanted by batched
+    multi-start: the ``B`` restarts must NOT be coupled (which is what the
+    non-batched :func:`project_total_power` would do, reducing over the whole
+    batch to one scalar).
+
+    Args:
+        params: Non-empty list of tensors, each shaped ``(B, *shape_m)`` with a
+            common leading batch size ``B``.
+        P: Positive total-power budget (applied per element).
+
+    Returns:
+        List of new tensors (same shapes); each element satisfies its own
+        total-power constraint.
+    """
+    if P <= 0:
+        raise ValueError(f"Power budget P must be positive, got {P}")
+    if len(params) == 0:
+        raise ValueError("params must be a non-empty list.")
+    total_sq = sum((p.abs() ** 2).flatten(1).sum(1) for p in params)  # (B,)
+    factor = torch.sqrt(torch.clamp(P / total_sq, max=1.0))  # (B,)
+    return [p * _bcast_to(factor, p) for p in params]
