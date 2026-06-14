@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pga-toolbox"
-version = "0.1.0"
-description = "Projected gradient ascent/descent for complex-valued (Wirtinger) and real parameters, with fixed-step and Armijo backtracking line search variants."
+version = "0.3.0"
+description = "Projected gradient ascent/descent for complex-valued (Wirtinger) and real parameters, with fixed-step, Armijo backtracking line search, and Spectral Projected Gradient (SPG) variants."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }

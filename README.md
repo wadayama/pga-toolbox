@@ -91,14 +91,40 @@ default to the values verified on the cmi-dag single-link MIMO
 benchmark (1792-iter fixed-step → 5-iter Armijo, see
 `PGD_IMPROVEMENT.md` in this repository's `notes/`).
 
+### Spectral Projected Gradient (SPG) — fastest on hard problems
+
+SPG (Barzilai–Borwein spectral step + nonmonotone projected line search)
+is as cheap per iteration as steepest descent but adapts to the local
+curvature like a quasi-Newton method. On the project's MI-maximisation
+smoke benchmark it reaches the same optimum as Armijo with ~6× fewer
+objective evaluations (and ~20× fewer than a tuned fixed step), with no
+precision loss. The feasible set defined by `projector` must be **convex**
+(every projection shipped here is).
+
+```python
+from pga_toolbox import pga_ascent_spg
+
+history = pga_ascent_spg(
+    closure, F_list,
+    projector=projector,
+    max_iter=200,
+)
+```
+
+Two semantic differences from the Armijo variants, both intrinsic to the
+spectral step: the returned `history` is **not monotone**, and on return
+`params` holds the **best-seen iterate** (not the last), so the objective
+there equals `max(history)` for ascent (`min` for descent).
+
 ### Descent variants
 
 Symmetric ascent / descent wrappers:
 
 ```python
-from pga_toolbox import pga_descent, pga_descent_armijo
+from pga_toolbox import pga_descent, pga_descent_armijo, pga_descent_spg
 
 history = pga_descent_armijo(cost_closure, params, projector=projector)
+history = pga_descent_spg(cost_closure, params, projector=projector)
 ```
 
 ## Public API
@@ -107,8 +133,10 @@ history = pga_descent_armijo(cost_closure, params, projector=projector)
 | --- | --- | --- |
 | `pga_ascent` | fixed-step projected gradient ASCENT | baseline / known good step size |
 | `pga_descent` | fixed-step projected gradient DESCENT | minimise a cost |
-| `pga_ascent_armijo` | Armijo line search ASCENT (persistent step) | recommended; no `step_size` tuning |
+| `pga_ascent_armijo` | Armijo line search ASCENT (persistent step) | no `step_size` tuning |
 | `pga_descent_armijo` | Armijo line search DESCENT | symmetric descent |
+| `pga_ascent_spg` | Spectral Projected Gradient ASCENT (BB + nonmonotone) | recommended; fewest evals on hard / ill-conditioned problems (convex constraint) |
+| `pga_descent_spg` | Spectral Projected Gradient DESCENT | symmetric descent |
 | `project_frobenius_ball` | project one matrix onto `{X : ‖X‖_F^2 ≤ P}` | per-matrix power constraint |
 | `project_total_power` | project a list onto `{Σ_m ‖A_m‖_F^2 ≤ P}` | shared total power budget |
 
@@ -140,11 +168,15 @@ The `pga_*` drivers accept three closure / parameter conventions:
 
 ## Roadmap
 
-- v0.1 (this release): fixed-step + Armijo (deterministic).
+- v0.1: fixed-step + Armijo (deterministic).
+- v0.3 (this release): Spectral Projected Gradient (SPG) — Barzilai–Borwein
+  spectral step + nonmonotone projected line search. Validated on the
+  MI-maximisation smoke benchmark (~6× fewer evals than Armijo, ~20× fewer
+  than a tuned fixed step, same optimum).
 - v0.2 (planned): stochastic SGD ascent / descent + projection
-  (closure-resamples convention from `fading-dag`).
-- v0.3 (planned): Barzilai–Borwein step (PGD_IMPROVEMENT.md §3.2)
-  and Spectral Projected Gradient (SPG, §3.3).
+  (closure-resamples convention from `fading-dag`). Note: the deterministic
+  line-search / BB machinery (Armijo, SPG) is **not** directly usable under
+  minibatch noise.
 - v0.4+ (planned): more projections (unit modulus for RIS phases,
   simplex, rank constraints, etc.).
 
