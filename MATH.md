@@ -61,7 +61,7 @@ parameter list. Code: `pga_toolbox/pga.py`.
 
 For a **real-valued** $f$ of a complex variable $\Theta \in \mathbb{C}^{p
 \times q}$, the steepest-ascent direction in the real-Euclidean metric on
-$(\operatorname{Re}\Theta, \operatorname{Im}\Theta)$ is the conjugate
+$(\mathrm{Re}\Theta, \mathrm{Im}\Theta)$ is the conjugate
 (Wirtinger) cogradient
 
 $$
@@ -79,8 +79,8 @@ needed (the line searches), it is the **real-Euclidean** product
 
 $$
 \langle g, d\rangle_{\mathbb{R}}
-= \operatorname{Re}\,\langle \overline{g}, d\rangle
-= \operatorname{Re}\sum_i \overline{g_i}\, d_i,
+= \mathrm{Re}\,\langle \overline{g}, d\rangle
+= \mathrm{Re}\sum_i \overline{g_i}\, d_i,
 $$
 
 which reduces to the ordinary dot product for real tensors. Code:
@@ -280,7 +280,7 @@ under this sign flip. Drivers: `pga_descent`, `pga_descent_armijo`,
 | $x \in \mathbb{R}^n$ or $\mathbb{C}^n$ | optimisation parameters (`params`) |
 | $\Omega$, $\mathcal{P}_\Omega$ | convex feasible set and its Euclidean projection |
 | $g = \nabla f(x)$ | gradient; for complex $x$, the Wirtinger ascent direction (`.grad`) |
-| $\langle g, d\rangle_{\mathbb{R}}$ | real-Euclidean inner product $\operatorname{Re}\langle\overline g, d\rangle$ |
+| $\langle g, d\rangle_{\mathbb{R}}$ | real-Euclidean inner product $\mathrm{Re}\langle\overline g, d\rangle$ |
 | $\alpha$ | step size (fixed) / spectral BB step $\alpha_{\mathrm{BB}}$ (SPG) |
 | $e$, $c$, $\beta_\uparrow,\beta_\downarrow$ | Armijo step, sufficient-increase constant, grow/shrink factors |
 | $s, y$ | iterate / gradient differences for the BB step |
