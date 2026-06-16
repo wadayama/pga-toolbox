@@ -4,7 +4,8 @@
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue.svg)](https://www.python.org/)
 
 Projected gradient ascent / descent for complex-valued (Wirtinger) and
-real parameters, with fixed-step and Armijo backtracking line search
+real parameters, with fixed-step, Armijo backtracking line search,
+Spectral Projected Gradient (SPG), and batched parallel multi-start SPG
 variants. Built on PyTorch; depends only on `torch`.
 
 This library extracts the small but recurrent optimisation core that
@@ -211,6 +212,20 @@ The `pga_*` drivers accept three closure / parameter conventions:
   `cmi-dag`, `fading-dag`, and `bussgang-dag` so each sister library
   can drop in a dependency on `pga-toolbox` without altering its
   callers.
+
+## GPU support
+
+The library is **device-agnostic**: every tensor it allocates inherits
+`device` and `dtype` from its inputs, so the same code runs unchanged on CPU
+or CUDA. The full test suite runs on CPU and, when a CUDA device is present,
+is re-parametrised onto CUDA by `tests/conftest.py`.
+
+In addition, `tests/test_cuda_specific.py` manages devices explicitly: it
+solves each problem on **both CPU and CUDA from bit-identical inputs** and
+asserts the converged results agree — for fixed-step, Armijo, SPG, and batched
+multi-start SPG — and that parameters, gradients, and projections stay on the
+CUDA device. **These CUDA tests have been run and pass on a CUDA device**; they
+are skipped automatically on CPU-only machines.
 
 ## Roadmap
 
