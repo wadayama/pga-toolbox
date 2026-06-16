@@ -15,6 +15,11 @@ necessarily public) have been copy-vendoring. The goal is a single
 source of truth so improvements (Armijo line search now, BB / SPG
 later) reach every dependent library at once.
 
+See [`MATH.md`](MATH.md) for a concise, implementation-side account of the
+mathematics behind each method — the constrained problem, the Wirtinger
+convention, the closed-form projections, and the fixed-step / Armijo / SPG /
+batched multi-start update rules.
+
 ## Why
 
 PyTorch's `.grad` on a complex leaf with a real-valued objective is the
