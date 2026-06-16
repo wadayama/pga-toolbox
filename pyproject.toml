@@ -35,6 +35,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
+    "numpy>=2.4.6",
     "pytest>=7.0",
 ]
 
