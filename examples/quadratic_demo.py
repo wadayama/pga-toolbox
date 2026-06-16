@@ -12,6 +12,8 @@ not need a tuned step size.
 
 from __future__ import annotations
 
+import argparse
+
 import torch
 
 from pga_toolbox import (
@@ -21,11 +23,27 @@ from pga_toolbox import (
 )
 
 
-def main() -> None:
+def resolve_device(choice: str) -> torch.device:
+    """Map the ``--device`` choice to a concrete device.
+
+    ``auto`` (the default) picks CUDA when available, else CPU. Requesting
+    ``cuda`` explicitly on a machine without a GPU is an error.
+    """
+    if choice == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if choice == "cuda" and not torch.cuda.is_available():
+        raise SystemExit("CUDA requested but torch.cuda.is_available() is False.")
+    return torch.device(choice)
+
+
+def main(device: torch.device | None = None) -> None:
+    if device is None:
+        device = torch.device("cpu")
     torch.manual_seed(0)
     d = 4
     P = 1.0
-    Z_target = torch.randn(d, d, dtype=torch.complex128) * 3.0  # outside the ball
+    # Target outside the ball; created on the chosen device.
+    Z_target = torch.randn(d, d, dtype=torch.complex128, device=device) * 3.0
 
     def closure(Z: torch.Tensor) -> torch.Tensor:
         diff = Z - Z_target
@@ -35,7 +53,9 @@ def main() -> None:
         return [project_frobenius_ball(p, P=P) for p in params]
 
     # --- Fixed-step PGA (deliberately conservative step) ---
-    Z_fixed = torch.zeros(d, d, dtype=torch.complex128, requires_grad=True)
+    Z_fixed = torch.zeros(
+        d, d, dtype=torch.complex128, device=device, requires_grad=True
+    )
     hist_fixed = pga_ascent(
         lambda: closure(Z_fixed),
         [Z_fixed],
@@ -45,7 +65,9 @@ def main() -> None:
     )
 
     # --- Armijo line search PGA (no tuning) ---
-    Z_armijo = torch.zeros(d, d, dtype=torch.complex128, requires_grad=True)
+    Z_armijo = torch.zeros(
+        d, d, dtype=torch.complex128, device=device, requires_grad=True
+    )
     hist_armijo = pga_ascent_armijo(
         lambda: closure(Z_armijo),
         [Z_armijo],
@@ -59,6 +81,7 @@ def main() -> None:
     f_star = closure(Z_star).item()
 
     print("== quadratic demo ==")
+    print(f"device                         : {device}")
     print(f"closed-form optimum (max f)    : {f_star:.6f}")
     print(
         "fixed PGA  : "
@@ -77,4 +100,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--device",
+        choices=["auto", "cpu", "cuda"],
+        default="auto",
+        help="Device to run on (default: auto = cuda if available, else cpu).",
+    )
+    args = parser.parse_args()
+    main(resolve_device(args.device))
