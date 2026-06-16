@@ -8,12 +8,20 @@ real parameters, with fixed-step, Armijo backtracking line search,
 Spectral Projected Gradient (SPG), and batched parallel multi-start SPG
 variants. Built on PyTorch; depends only on `torch`.
 
+![pga-toolbox visual abstract](docs/figures/visual_abstract.png)
+
+*Both panels are produced from actual runs of the library
+(`examples/visual_abstract.py`): **(A)** on an ill-conditioned, constraint-active
+problem, SPG reaches the optimum in far fewer objective evaluations than a
+stably tuned fixed step; **(B)** batched parallel multi-start SPG escapes local
+optima — best-of-`B` finds the global peak while most single starts do not.*
+
 This library extracts the small but recurrent optimisation core that
-several companion research libraries of the author (e.g. `gaussian-dag`,
-`cmi-dag`, `fading-dag`, `bussgang-dag` — internal projects, not
-necessarily public) have been copy-vendoring. The goal is a single
-source of truth so improvements (Armijo line search now, BB / SPG
-later) reach every dependent library at once.
+several companion research libraries of the author (`gaussian-dag`,
+`cmi-dag`, `fading-dag`, `bussgang-dag` — all open source; see
+[Sister libraries](#sister-libraries)) have been copy-vendoring. The goal
+is a single source of truth so improvements (Armijo line search, SPG,
+batched multi-start) reach every dependent library at once.
 
 See [`MATH.md`](MATH.md) for a concise, implementation-side account of the
 mathematics behind each method — the constrained problem, the Wirtinger
@@ -249,6 +257,26 @@ are skipped automatically on CPU-only machines.
   minibatch noise.
 - v0.5+ (planned): non-convex projections (unit modulus for RIS phases,
   simplex, rank constraints) — where multi-start becomes essential.
+
+## Sister libraries
+
+`pga-toolbox` is the shared optimisation core for a family of open-source
+linear-Gaussian-DAG information libraries by the same author. Each supplies
+the objective closure; `pga-toolbox` drives the ascent/descent.
+
+- [**gaussian-dag**](https://github.com/wadayama/gaussian-dag) — mutual
+  information of linear Gaussian DAGs via the K-recursion (exact log-det MI,
+  Wirtinger PGA). The original paper:
+  [arXiv:2606.06982](https://arxiv.org/abs/2606.06982).
+- [**cmi-dag**](https://github.com/wadayama/cmi-dag) — conditional mutual
+  information and rate regions for **multi-terminal** linear Gaussian DAGs
+  (multi-root K-recursion).
+- [**fading-dag**](https://github.com/wadayama/fading-dag) — **fading-channel**
+  MI with SGD optimisation: mini-batched Monte Carlo over random
+  channel-matrix realisations (ergodic / outage objectives).
+- [**bussgang-dag**](https://github.com/wadayama/bussgang-dag) — **Bussgang
+  surrogate** MI for *nonlinear* linear-Gaussian DAGs (low-resolution ADCs,
+  soft-clipping amplifiers).
 
 ## License
 
