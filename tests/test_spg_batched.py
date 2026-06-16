@@ -55,7 +55,7 @@ def test_batched_independence_no_cross_talk():
 
 def test_batched_complex_independence():
     """Complex (Wirtinger) batched problem with distinct targets."""
-    gen = torch.Generator().manual_seed(7)
+    gen = torch.Generator(device=torch.get_default_device()).manual_seed(7)
     targets = torch.randn(2, 3, 3, dtype=torch.complex128, generator=gen)
     Zb = torch.zeros(2, 3, 3, dtype=torch.complex128, requires_grad=True)
 
@@ -69,7 +69,7 @@ def test_batched_complex_independence():
 
 
 def test_batched_total_power_projection_matches_scalar_per_slice():
-    gen = torch.Generator().manual_seed(1)
+    gen = torch.Generator(device=torch.get_default_device()).manual_seed(1)
     A = torch.randn(3, 2, 2, dtype=torch.complex128, generator=gen) * 5.0
     out = project_total_power_batched([A], P=4.0)[0]
     tot = (out.abs() ** 2).flatten(1).sum(1)
@@ -80,7 +80,7 @@ def test_batched_total_power_projection_matches_scalar_per_slice():
 
 
 def test_batched_frobenius_projection_per_element():
-    gen = torch.Generator().manual_seed(2)
+    gen = torch.Generator(device=torch.get_default_device()).manual_seed(2)
     A = torch.randn(4, 3, 3, dtype=torch.float64, generator=gen) * 10.0
     out = project_frobenius_ball_batched(A, P=2.0)
     nrm = (out.abs() ** 2).flatten(1).sum(1)
@@ -92,7 +92,7 @@ def test_batched_frobenius_projection_per_element():
 
 def test_batched_constrained_each_element_feasible():
     """Per-element power constraint holds for every restart after the run."""
-    gen = torch.Generator().manual_seed(3)
+    gen = torch.Generator(device=torch.get_default_device()).manual_seed(3)
     init = torch.randn(5, 4, 4, dtype=torch.complex128, generator=gen)
     target = torch.full((4, 4), 3.0, dtype=torch.complex128)
     Fb = init.clone().requires_grad_(True)

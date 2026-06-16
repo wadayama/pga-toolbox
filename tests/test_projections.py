@@ -44,7 +44,7 @@ def test_total_power_inside_unchanged():
 
 
 def test_total_power_outside_rescaled_uniformly():
-    g = torch.Generator().manual_seed(0)
+    g = torch.Generator(device=torch.get_default_device()).manual_seed(0)
     params = [
         torch.randn(3, 3, dtype=torch.complex128, generator=g) * 2.0
         for _ in range(4)

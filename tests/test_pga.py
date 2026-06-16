@@ -108,7 +108,10 @@ def test_total_power_functional_in_pga():
 
 def test_complex_ascent_quadratic():
     """Complex problem: max -||Z - Z_target||_F^2."""
-    target = torch.randn(3, 3, dtype=torch.complex128, generator=torch.Generator().manual_seed(0))
+    target = torch.randn(
+        3, 3, dtype=torch.complex128,
+        generator=torch.Generator(device=torch.get_default_device()).manual_seed(0),
+    )
 
     def closure():
         diff = Z - target

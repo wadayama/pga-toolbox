@@ -108,7 +108,7 @@ def test_armijo_with_total_power_projection():
 
 def test_armijo_complex_quadratic():
     """Complex problem with Wirtinger gradient."""
-    gen = torch.Generator().manual_seed(42)
+    gen = torch.Generator(device=torch.get_default_device()).manual_seed(42)
     target = torch.randn(3, 3, dtype=torch.complex128, generator=gen)
 
     def closure():
