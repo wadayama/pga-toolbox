@@ -20,10 +20,10 @@ yet exploits curvature like a quasi-Newton method:
      destroy the very oscillation that lets it traverse ill-conditioned valleys
      quickly.
 
-On the project's MI-maximisation smoke benchmark (linear Gaussian DAG, active
-total-power constraint), SPG reaches the same optimum as the Armijo line search
-with ~6x fewer objective evaluations and ~20x fewer than a tuned fixed step,
-without precision loss -- see the originating project's ``pga-smoke``.
+On the originating project's MI-maximisation smoke benchmark (linear Gaussian
+DAG, active total-power constraint), SPG reaches the same optimum as the Armijo
+line search with ~6x fewer objective evaluations and ~20x fewer than a tuned
+fixed step, without precision loss.
 
 Conventions (shared with :mod:`pga_toolbox.line_search`):
   - The closure returns a scalar ``torch.Tensor``; complex leaves carry the

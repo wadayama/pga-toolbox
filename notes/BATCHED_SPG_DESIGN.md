@@ -1,7 +1,6 @@
 # Batched (vectorised) SPG — multi-start design memo
 
 Status: DESIGN (pre-implementation). Target: pga-toolbox v0.4.0.
-Author discussion: 2026-06-14.
 
 ## 1. Goal
 
@@ -13,11 +12,11 @@ so we get `B` random restarts almost for free. The batch index is the
 data minibatch.
 
 This is the mechanism for global search (best-of-`B`) on problems whose MI
-landscape has multiple distinct-valued local optima. Such regimes exist and are
-catalogued in the project memory `multistart-playground`:
-  - dramatic: `net=13, P=0.5, noise=1.0` (best-of-12 ≈ +33 % over median);
-  - useful-regime: `net=13, P=36, noise=1.0` (+0.025 nats at high MI ~9.6).
-Both are the validation testbeds for this feature.
+landscape has multiple distinct-valued local optima. Such regimes arise in the
+originating project's MI-maximisation experiments (e.g. low-power, high-noise
+linear-Gaussian network settings, where best-of-12 beats the median single-start
+by tens of percent, and a smaller gain persists at high MI). These serve as the
+validation testbeds for this feature.
 
 Non-goal (v0.4): non-convex feasible sets (unit-modulus / RIS). SPG assumes a
 convex projection; that is a separate work item (v0.5) where multi-start ALSO
@@ -210,7 +209,7 @@ Per-element best-point copy-back: whenever `acc_phi[b] > best_phi[b]`, update
 
 Validation target: wall-clock of `B = 12` within a small constant factor of
 `B = 1` on CPU (amortised kernel/Python overhead), and best-of-`B` strictly
-beats the median single-start on `net=13, P=0.5`.
+beats the median single-start in the multimodal regime described in §1.
 
 ## 9. Robustness: NaN-safe batched objective (REQUIREMENT)
 
@@ -237,8 +236,9 @@ wrapper in the example if needed.
 5. **Per-element best-point copy-back** under nonmonotone steps.
 6. **Retirement**: elements initialised at the optimum retire immediately while
    others keep going; `history` grid stays `(T, B)`.
-7. **Real playground** (in `pga-smoke`, not unit tests): `net=13, P=0.5` —
-   best-of-B beats median; `net=13, P=36` — gain persists at high MI.
+7. **Real playground** (in the originating project's experiments, not unit
+   tests): best-of-B beats the median single-start in the multimodal regime,
+   and the gain persists at high MI.
 8. **Invalid args** mirror scalar SPG.
 
 ## 11. Open decisions (confirm before coding)
@@ -263,6 +263,7 @@ wrapper in the example if needed.
   `project_frobenius_ball_batched`.
 - `pga_toolbox/__init__.py` — exports; `__version__ = "0.4.0"`.
 - `tests/test_spg_batched.py` — §10.
-- `pga-smoke/` — playground demo (best-of-B vs single-start on net=13).
+- originating project's experiments — playground demo (best-of-B vs
+  single-start) in the multimodal regime.
 - `README.md` — API table row + a batched-multistart quickstart; roadmap update.
 ```

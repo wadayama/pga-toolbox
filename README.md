@@ -8,8 +8,9 @@ real parameters, with fixed-step and Armijo backtracking line search
 variants. Built on PyTorch; depends only on `torch`.
 
 This library extracts the small but recurrent optimisation core that
-several sister libraries (`gaussian-dag`, `cmi-dag`, `fading-dag`,
-`bussgang-dag`, ...) have been copy-vendoring. The goal is a single
+several companion research libraries of the author (e.g. `gaussian-dag`,
+`cmi-dag`, `fading-dag`, `bussgang-dag` — internal projects, not
+necessarily public) have been copy-vendoring. The goal is a single
 source of truth so improvements (Armijo line search now, BB / SPG
 later) reach every dependent library at once.
 
@@ -34,7 +35,8 @@ toolbox handles both:
 git clone https://github.com/wadayama/pga-toolbox.git
 cd pga-toolbox
 uv sync                   # creates .venv with torch as the sole runtime dependency
-uv run pytest             # 24 unit tests across pga, line_search, projections
+uv run pytest             # unit tests for pga, line_search, projections, SPG;
+                          # each runs on CPU and, when a GPU is present, on CUDA
 ```
 
 Or as a path dependency from a sister project's `pyproject.toml`:
@@ -87,9 +89,9 @@ history = pga_ascent_armijo(
 ```
 
 That is the entire API change. All other arguments are optional and
-default to the values verified on the cmi-dag single-link MIMO
-benchmark (1792-iter fixed-step → 5-iter Armijo, see
-`PGD_IMPROVEMENT.md` in this repository's `notes/`).
+default to the values verified on a single-link MIMO benchmark from the
+originating methodology (1792-iter fixed-step → 5-iter Armijo; see the
+citation below).
 
 ### Spectral Projected Gradient (SPG) — fastest on hard problems
 
@@ -241,7 +243,6 @@ methodology paper:
 > K-Recursion and Automatic Differentiation for Linear Gaussian
 > Wireless Networks*, arXiv:2606.06982 \[cs.IT\], 2026.
 
-The Armijo persistent-step convention is documented in
-`PGD_IMPROVEMENT.md` (in this repository's `notes/` of the originating
-project), verified to give 1792-iter to 5-iter speedup on the cmi-dag
-smoke benchmark.
+The Armijo persistent-step convention is described in the originating
+methodology (see the citation above), verified to give a 1792-iter to
+5-iter speedup on a single-link MIMO smoke benchmark.

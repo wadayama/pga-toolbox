@@ -4,10 +4,11 @@ ascent / descent, with a persistent step size carried across iterations.
 References:
   - L. Armijo (1966): "Minimization of functions having Lipschitz
     continuous first partial derivatives", Pacific J. Math. 16, 1-3.
-  - PGD_IMPROVEMENT.md (in this repository's notes) for the persistent
-    step size convention `e <- min(e * grow, e_max)` between iterations,
-    which is verified to give the dramatic 1792-iter to 5-iter speedup
-    on the cmi-dag smoke problem (single-link MIMO Lagrangian).
+  - The persistent step size convention `e <- min(e * grow, e_max)`
+    between iterations is described in the originating methodology (see
+    the project README citation); it is verified to give a dramatic
+    1792-iter to 5-iter speedup on a single-link MIMO Lagrangian smoke
+    problem.
 
 Key design choices:
   - Step size ``e`` is carried across iterations and multiplied by

@@ -8,9 +8,8 @@ one, so ``B`` random restarts come almost for free. The batch index is the
 minibatch.
 
 This is the mechanism for global search (best-of-``B``) on problems whose
-landscape has multiple distinct-valued local optima (see the originating
-project's ``pga-smoke`` playground search). The per-element local solver is the
-same SPG as :mod:`pga_toolbox.spg`.
+landscape has multiple distinct-valued local optima. The per-element local
+solver is the same SPG as :mod:`pga_toolbox.spg`.
 
 Design: see ``notes/BATCHED_SPG_DESIGN.md``. Key points:
   - ``params[m]`` has shape ``(B, *shape_m)``; element ``b`` owns
