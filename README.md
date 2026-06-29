@@ -18,7 +18,7 @@ optima — best-of-`B` finds the global peak while most single starts do not.*
 
 This library extracts the small but recurrent optimisation core that
 several companion research libraries of the author (`gaussian-dag`,
-`cmi-dag`, `fading-dag`, `bussgang-dag` — all open source; see
+`cmi-dag`, `fading-dag` — all open source; see
 [Sister libraries](#sister-libraries)) have been copy-vendoring. The goal
 is a single source of truth so improvements (Armijo line search, SPG,
 batched multi-start) reach every dependent library at once.
@@ -222,7 +222,7 @@ The `pga_*` drivers accept three closure / parameter conventions:
   *accepted* objective values, one per successful outer iteration.
 - **Backward compatibility**: the fixed-step API matches the legacy
   `pga_ascent` / `pga_descent` signature used by `gaussian-dag`,
-  `cmi-dag`, `fading-dag`, and `bussgang-dag` so each sister library
+  `cmi-dag`, and `fading-dag` so each sister library
   can drop in a dependency on `pga-toolbox` without altering its
   callers.
 
@@ -274,9 +274,6 @@ the objective closure; `pga-toolbox` drives the ascent/descent.
 - [**fading-dag**](https://github.com/wadayama/fading-dag) — **fading-channel**
   MI with SGD optimisation: mini-batched Monte Carlo over random
   channel-matrix realisations (ergodic / outage objectives).
-- [**bussgang-dag**](https://github.com/wadayama/bussgang-dag) — **Bussgang
-  surrogate** MI for *nonlinear* linear-Gaussian DAGs (low-resolution ADCs,
-  soft-clipping amplifiers).
 
 ## License
 
